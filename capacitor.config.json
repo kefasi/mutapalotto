@@ -1,0 +1,30 @@
+{
+  "appId": "com.mutapalottery.app",
+  "appName": "Mutapa Lottery",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https",
+    "url": "http://31.97.155.160:8000/"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 3000,
+      "backgroundColor": "#15803d",
+      "androidSplashResourceName": "splash",
+      "androidScaleType": "CENTER_CROP",
+      "showSpinner": false,
+      "androidSpinnerStyle": "large",
+      "iosSpinnerStyle": "small",
+      "spinnerColor": "#facc15",
+      "splashFullScreen": true,
+      "splashImmersive": true
+    },
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#15803d"
+    },
+    "App": {
+      "statusBarStyle": "dark"
+    }
+  }
+}
