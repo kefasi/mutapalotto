@@ -1,0 +1,38 @@
+Uncaught (in promise) TypeError: Failed to execute 'put' on 'Cache': Request method 'POST' is unsupported
+    at handleStaticRequest (sw.js:131:13)Understand this error
+sw.js:131 Uncaught (in promise) TypeError: Failed to execute 'put' on 'Cache': Request scheme 'chrome-extension' is unsupported
+    at handleStaticRequest (sw.js:131:13)Understand this error
+sw.js:131 Uncaught (in promise) TypeError: Failed to execute 'put' on 'Cache': Request method 'POST' is unsupported
+    at handleStaticRequest (sw.js:131:13)Understand this error
+sw.js:131 Uncaught (in promise) TypeError: Failed to execute 'put' on 'Cache': Request scheme 'chrome-extension' is unsupported
+    at handleStaticRequest (sw.js:131:13)Understand this error
+sw.js:131 Uncaught (in promise) TypeError: Failed to execute 'put' on 'Cache': Request method 'POST' is unsupported
+    at handleStaticRequest (sw.js:131:13)Understand this error
+index-ygOA4RTL.js:322 SW registered:  ServiceWorkerRegistration
+agentportal:1 <meta name="apple-mobile-web-app-capable" content="yes"> is deprecated. Please include <meta name="mobile-web-app-capable" content="yes">Understand this warning
+agentportal:1 Error while trying to use the following icon from the Manifest: https://aeee119b-3a17-4282-ab08-ce63d0173feb.picard.prod.repl.run/icon-144.png (Download error or resource isn't a valid image)Understand this error
+index-ygOA4RTL.js:40 TypeError: o.reduce is not a function
+    at cI (index-ygOA4RTL.js:322:69632)
+    at Lh (index-ygOA4RTL.js:38:16998)
+    at uf (index-ygOA4RTL.js:40:3139)
+    at wb (index-ygOA4RTL.js:40:44737)
+    at yb (index-ygOA4RTL.js:40:39727)
+    at jE (index-ygOA4RTL.js:40:39655)
+    at xc (index-ygOA4RTL.js:40:39508)
+    at bf (index-ygOA4RTL.js:40:35875)
+    at Jp (index-ygOA4RTL.js:40:36678)
+    at bs (index-ygOA4RTL.js:38:3274)
+cf @ index-ygOA4RTL.js:40Understand this error
+index-ygOA4RTL.js:38 Uncaught TypeError: o.reduce is not a function
+    at cI (index-ygOA4RTL.js:322:69632)
+    at Lh (index-ygOA4RTL.js:38:16998)
+    at uf (index-ygOA4RTL.js:40:3139)
+    at wb (index-ygOA4RTL.js:40:44737)
+    at yb (index-ygOA4RTL.js:40:39727)
+    at jE (index-ygOA4RTL.js:40:39655)
+    at xc (index-ygOA4RTL.js:40:39508)
+    at bf (index-ygOA4RTL.js:40:35875)
+    at Jp (index-ygOA4RTL.js:40:36678)
+    at bs (index-ygOA4RTL.js:38:3274)Understand this error
+sw.js:131 Uncaught (in promise) TypeError: Failed to execute 'put' on 'Cache': Request scheme 'chrome-extension' is unsupported
+    at handleStaticRequest (sw.js:131:13)

@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mutapa Lottery - Admin Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <style>
+    /* Custom styles for responsive tables */
+    .table-responsive {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    .modal {
+      backdrop-filter: blur(4px);
+    }
+    
+    .animate-spin {
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    
+    .btn-primary {
+      @apply bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors;
+    }
+    
+    .btn-secondary {
+      @apply bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors;
+    }
+    
+    .btn-danger {
+      @apply bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors;
+    }
+    
+    .btn-warning {
+      @apply bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg transition-colors;
+    }
+  </style>
+</head>
+<body class="bg-gray-50">
+  <!-- Login Modal (shown initially) -->
+  <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 modal flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-md">
+      <div class="p-6">
+        <div class="text-center mb-6">
+          <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i data-lucide="shield-check" class="w-8 h-8 text-green-600"></i>
+          </div>
+          <h1 class="text-2xl font-bold text-gray-900">Admin Login</h1>
+          <p class="text-gray-600">Secure access to Mutapa Lottery administration</p>
+        </div>
+        
+        <div class="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <div class="flex items-center">
+            <i data-lucide="info" class="w-5 h-5 text-yellow-600 mr-2"></i>
+            <div>
+              <p class="text-sm font-medium text-yellow-800">Daily Rotating Credentials</p>
+              <p class="text-xs text-yellow-700">Admin credentials change daily. Check server console for today's login details.</p>
+            </div>
+          </div>
+        </div>
+
+        <form id="loginForm">
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Admin ID
+            </label>
+            <input 
+              type="text" 
+              id="adminId" 
+              required
+              placeholder="e.g., A1B2C3D4"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            >
+          </div>
+          
+          <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Daily Password
+            </label>
+            <input 
+              type="password" 
+              id="adminPassword" 
+              required
+              placeholder="Daily generated password"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            >
+          </div>
+          
+          <button 
+            type="submit" 
+            id="loginBtn"
+            class="w-full btn-primary"
+          >
+            <span id="loginText">Secure Login</span>
+            <div id="loginSpinner" class="hidden animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full"></div>
+          </button>
+        </form>
+        
+        <!-- Temporary Development Bypass -->
+        <div class="mt-6 pt-4 border-t border-gray-200">
+          <div class="text-center">
+            <p class="text-sm text-gray-600 mb-3">Development Access</p>
+            <button 
+              id="devBypassBtn"
+              type="button"
+              class="w-full bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg text-sm transition-colors"
+            >
+              Bypass Login (Development Only)
+            </button>
+          </div>
+        </div>
+        
+        <div id="loginError" class="hidden mt-4 p-3 bg-red-100 border border-red-300 text-red-700 rounded-lg text-sm"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Dashboard (hidden initially) -->
+  <div id="dashboard" class="hidden min-h-screen">
+    <!-- Header -->
+    <header class="bg-green-800 text-white shadow-lg">
+      <div class="container mx-auto px-4 py-4">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0">
+          <div class="flex items-center space-x-3">
+            <div class="w-8 h-8 bg-yellow-400 rounded flex items-center justify-center">
+              <i data-lucide="crown" class="w-5 h-5 text-yellow-800"></i>
+            </div>
+            <div>
+              <h1 class="text-xl sm:text-2xl font-bold">Mutapa Lottery Admin</h1>
+              <p class="text-green-200 text-xs sm:text-sm" id="adminInfo">Loading...</p>
+            </div>
+          </div>
+          <div class="flex items-center space-x-2 sm:space-x-4">
+            <div class="text-xs sm:text-sm text-green-200">
+              <span id="currentTime"></span>
+            </div>
+            <button id="logoutBtn" class="bg-red-600 hover:bg-red-700 px-3 py-1 sm:px-4 sm:py-2 rounded-lg text-sm transition-colors">
+              <i data-lucide="log-out" class="w-4 h-4 inline mr-1"></i>
+              Logout
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <div class="bg-white border-b border-gray-200 sticky top-0 z-40">
+      <div class="container mx-auto px-4">
+        <nav class="flex space-x-1 overflow-x-auto">
+          <button class="nav-tab active px-3 py-3 text-sm font-medium whitespace-nowrap border-b-2 border-green-600 text-green-600" data-tab="overview">
+            <i data-lucide="pie-chart" class="w-4 h-4 inline mr-1"></i>
+            Overview
+          </button>
+          <button class="nav-tab px-3 py-3 text-sm font-medium whitespace-nowrap border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-tab="users">
+            <i data-lucide="users" class="w-4 h-4 inline mr-1"></i>
+            Users
+          </button>
+          <button class="nav-tab px-3 py-3 text-sm font-medium whitespace-nowrap border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-tab="agents">
+            <i data-lucide="user-check" class="w-4 h-4 inline mr-1"></i>
+            Agents
+          </button>
+          <button class="nav-tab px-3 py-3 text-sm font-medium whitespace-nowrap border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-tab="kyc">
+            <i data-lucide="file-check" class="w-4 h-4 inline mr-1"></i>
+            KYC Review
+          </button>
+          <button class="nav-tab px-3 py-3 text-sm font-medium whitespace-nowrap border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-tab="draws">
+            <i data-lucide="calendar" class="w-4 h-4 inline mr-1"></i>
+            Draws
+          </button>
+          <button class="nav-tab px-3 py-3 text-sm font-medium whitespace-nowrap border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-tab="system">
+            <i data-lucide="settings" class="w-4 h-4 inline mr-1"></i>
+            System
+          </button>
+        </nav>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-6">
+      <!-- Overview Tab -->
+      <div id="overview-tab" class="tab-content">
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div class="bg-white rounded-lg shadow-md p-4 sm:p-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-xs sm:text-sm text-gray-600">Total Users</p>
+                <p class="text-xl sm:text-2xl font-bold text-green-800" id="totalUsers">-</p>
+              </div>
+              <i data-lucide="users" class="w-6 h-6 sm:w-8 sm:h-8 text-green-600"></i>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-lg shadow-md p-4 sm:p-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-xs sm:text-sm text-gray-600">Active Agents</p>
+                <p class="text-xl sm:text-2xl font-bold text-blue-800" id="activeAgents">-</p>
+              </div>
+              <i data-lucide="user-check" class="w-6 h-6 sm:w-8 sm:h-8 text-blue-600"></i>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-lg shadow-md p-4 sm:p-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-xs sm:text-sm text-gray-600">Pending KYC</p>
+                <p class="text-xl sm:text-2xl font-bold text-yellow-800" id="pendingKyc">-</p>
+              </div>
+              <i data-lucide="clock" class="w-6 h-6 sm:w-8 sm:h-8 text-yellow-600"></i>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-lg shadow-md p-4 sm:p-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-xs sm:text-sm text-gray-600">Active Draws</p>
+                <p class="text-xl sm:text-2xl font-bold text-purple-800" id="activeDraws">-</p>
+              </div>
+              <i data-lucide="calendar" class="w-6 h-6 sm:w-8 sm:h-8 text-purple-600"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div class="bg-white rounded-lg shadow-md p-4 sm:p-6">
+            <h3 class="text-lg font-bold text-green-800 mb-4">Draw Management</h3>
+            <div class="space-y-3">
+              <button class="btn-primary w-full" onclick="executeDrawAction('daily')">
+                <i data-lucide="play" class="w-4 h-4 inline mr-2"></i>
+                Execute Daily Draw
+              </button>
+              <button class="btn-primary w-full" onclick="executeDrawAction('weekly')">
+                <i data-lucide="play" class="w-4 h-4 inline mr-2"></i>
+                Execute Weekly Draw
+              </button>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-lg shadow-md p-4 sm:p-6">
+            <h3 class="text-lg font-bold text-purple-800 mb-4">User Management</h3>
+            <div class="space-y-3">
+              <button class="btn-secondary w-full" onclick="showTab('users')">
+                <i data-lucide="users" class="w-4 h-4 inline mr-2"></i>
+                View All Users
+              </button>
+              <button class="btn-secondary w-full" onclick="showTab('agents')">
+                <i data-lucide="user-check" class="w-4 h-4 inline mr-2"></i>
+                View Agents
+              </button>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-lg shadow-md p-4 sm:p-6">
+            <h3 class="text-lg font-bold text-yellow-800 mb-4">System Status</h3>
+            <div class="space-y-3">
+              <button class="btn-warning w-full" onclick="checkVRFStatus()">
+                <i data-lucide="shield" class="w-4 h-4 inline mr-2"></i>
+                Check VRF Status
+              </button>
+              <button class="btn-warning w-full" onclick="viewBlockchainLogs()">
+                <i data-lucide="database" class="w-4 h-4 inline mr-2"></i>
+                Blockchain Logs
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Users Tab -->
+      <div id="users-tab" class="tab-content hidden">
+        <div class="bg-white rounded-lg shadow-md p-4 sm:p-6">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 space-y-4 sm:space-y-0">
+            <h2 class="text-xl font-bold text-gray-900">User Management</h2>
+            <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 w-full sm:w-auto">
+              <input 
+                type="text" 
+                id="userSearch" 
+                placeholder="Search users..."
+                class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 w-full sm:w-64"
+              >
+              <button onclick="searchUsers()" class="btn-primary">
+                <i data-lucide="search" class="w-4 h-4 inline mr-2"></i>
+                Search
+              </button>
+            </div>
+          </div>
+          
+          <div class="table-responsive">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                  <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Balance</th>
+                  <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">KYC</th>
+                  <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="usersTableBody" class="bg-white divide-y divide-gray-200">
+                <!-- Users will be loaded here -->
+              </tbody>
+            </table>
+          </div>
+          
+          <div id="usersLoading" class="text-center py-8">
+            <div class="animate-spin w-8 h-8 border-4 border-green-600 border-t-transparent rounded-full mx-auto"></div>
+            <p class="text-gray-600 mt-2">Loading users...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Agents Tab -->
+      <div id="agents-tab" class="tab-content hidden">
+        <div class="bg-white rounded-lg shadow-md p-4 sm:p-6">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 space-y-4 sm:space-y-0">
+            <h2 class="text-xl font-bold text-gray-900">Agent Management</h2>
+            <button onclick="showCreateAgentModal()" class="btn-primary">
+              <i data-lucide="user-plus" class="w-4 h-4 inline mr-2"></i>
+              Create New Agent
+            </button>
+          </div>
+          
+          <div class="table-responsive">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Agent</th>
+                  <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Code</th>
+                  <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Commission</th>
+                  <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="agentsTableBody" class="bg-white divide-y divide-gray-200">
+                <!-- Agents will be loaded here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- KYC Review Tab -->
+      <div id="kyc-tab" class="tab-content hidden">
+        <div class="bg-white rounded-lg shadow-md p-4 sm:p-6">
+          <h2 class="text-xl font-bold text-gray-900 mb-6">KYC Document Review</h2>
+          
+          <div id="kycDocuments" class="space-y-4">
+            <!-- KYC documents will be loaded here -->
+          </div>
+          
+          <div id="kycLoading" class="text-center py-8">
+            <div class="animate-spin w-8 h-8 border-4 border-green-600 border-t-transparent rounded-full mx-auto"></div>
+            <p class="text-gray-600 mt-2">Loading KYC documents...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Draws Tab -->
+      <div id="draws-tab" class="tab-content hidden">
+        <div class="bg-white rounded-lg shadow-md p-4 sm:p-6">
+          <h2 class="text-xl font-bold text-gray-900 mb-6">Draw Management</h2>
+          
+          <!-- Manual Draw Controls -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div class="border border-gray-200 rounded-lg p-4">
+              <h3 class="text-lg font-semibold text-gray-900 mb-4">Daily Draw</h3>
+              <div class="space-y-3">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Jackpot Amount</label>
+                  <input 
+                    type="number" 
+                    id="dailyJackpot"
+                    placeholder="Enter amount"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  >
+                </div>
+                <button onclick="executeManualDraw('daily')" class="btn-primary w-full">
+                  <i data-lucide="play" class="w-4 h-4 inline mr-2"></i>
+                  Execute Daily Draw
+                </button>
+              </div>
+            </div>
+
+            <div class="border border-gray-200 rounded-lg p-4">
+              <h3 class="text-lg font-semibold text-gray-900 mb-4">Weekly Draw</h3>
+              <div class="space-y-3">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Jackpot Amount</label>
+                  <input 
+                    type="number" 
+                    id="weeklyJackpot"
+                    placeholder="Enter amount"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  >
+                </div>
+                <button onclick="executeManualDraw('weekly')" class="btn-primary w-full">
+                  <i data-lucide="play" class="w-4 h-4 inline mr-2"></i>
+                  Execute Weekly Draw
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Draw History -->
+          <div class="table-responsive">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                  <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                  <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Numbers</th>
+                  <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jackpot</th>
+                  <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                </tr>
+              </thead>
+              <tbody id="drawsTableBody" class="bg-white divide-y divide-gray-200">
+                <!-- Draws will be loaded here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- System Tab -->
+      <div id="system-tab" class="tab-content hidden">
+        <div class="bg-white rounded-lg shadow-md p-4 sm:p-6">
+          <h2 class="text-xl font-bold text-gray-900 mb-6">System Status</h2>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="border border-gray-200 rounded-lg p-4">
+              <h3 class="text-lg font-semibold text-gray-900 mb-4">VRF Status</h3>
+              <div id="vrfStatus" class="space-y-2">
+                <p class="text-sm text-gray-600">Checking VRF status...</p>
+              </div>
+            </div>
+
+            <div class="border border-gray-200 rounded-lg p-4">
+              <h3 class="text-lg font-semibold text-gray-900 mb-4">Blockchain Logs</h3>
+              <div id="blockchainLogs" class="space-y-2 max-h-64 overflow-y-auto">
+                <p class="text-sm text-gray-600">Loading blockchain logs...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- User Management Modal -->
+  <div id="userModal" class="hidden fixed inset-0 bg-black bg-opacity-50 modal flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div class="p-6">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-xl font-bold text-gray-900" id="userModalTitle">Manage User</h2>
+          <button onclick="closeUserModal()" class="text-gray-500 hover:text-gray-700">
+            <i data-lucide="x" class="w-6 h-6"></i>
+          </button>
+        </div>
+        
+        <form id="userForm">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Name</label>
+              <input type="text" id="userName" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+              <input type="tel" id="userPhone" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Balance</label>
+              <input type="number" step="0.01" id="userBalance" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">New Password</label>
+              <input type="password" id="userPassword" placeholder="Leave empty to keep current" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+            </div>
+          </div>
+          
+          <div class="mt-6 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
+            <button type="submit" class="btn-primary">
+              <i data-lucide="save" class="w-4 h-4 inline mr-2"></i>
+              Save Changes
+            </button>
+            <button type="button" onclick="freezeUser()" id="freezeBtn" class="btn-warning">
+              <i data-lucide="pause" class="w-4 h-4 inline mr-2"></i>
+              Freeze Account
+            </button>
+            <button type="button" onclick="banUser()" id="banBtn" class="btn-danger">
+              <i data-lucide="ban" class="w-4 h-4 inline mr-2"></i>
+              Ban Account
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- KYC Document Modal -->
+  <div id="kycModal" class="hidden fixed inset-0 bg-black bg-opacity-50 modal flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+      <div class="p-6">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-xl font-bold text-gray-900">KYC Document Review</h2>
+          <button onclick="closeKycModal()" class="text-gray-500 hover:text-gray-700">
+            <i data-lucide="x" class="w-6 h-6"></i>
+          </button>
+        </div>
+        
+        <div id="kycModalContent">
+          <!-- KYC content will be loaded here -->
+        </div>
+        
+        <div class="mt-6 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
+          <button onclick="approveKyc()" class="btn-primary">
+            <i data-lucide="check" class="w-4 h-4 inline mr-2"></i>
+            Approve KYC
+          </button>
+          <button onclick="rejectKyc()" class="btn-danger">
+            <i data-lucide="x" class="w-4 h-4 inline mr-2"></i>
+            Reject KYC
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Global variables
+    let currentUser = null;
+    let currentKycDocument = null;
+    let adminToken = null;
+
+    // Initialize dashboard
+    document.addEventListener('DOMContentLoaded', function() {
+      lucide.createIcons();
+      
+      // Check if admin is already logged in
+      const savedToken = localStorage.getItem('adminToken');
+      if (savedToken) {
+        adminToken = savedToken;
+        showDashboard();
+      }
+      
+      // Setup event listeners
+      setupEventListeners();
+      updateClock();
+      setInterval(updateClock, 1000);
+    });
+
+    function setupEventListeners() {
+      // Login form
+      document.getElementById('loginForm').addEventListener('submit', handleLogin);
+      
+      // Logout button
+      document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+      
+      // Development bypass button
+      document.getElementById('devBypassBtn').addEventListener('click', handleDevBypass);
+      
+      // Tab navigation
+      document.querySelectorAll('.nav-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          const tabName = tab.getAttribute('data-tab');
+          showTab(tabName);
+        });
+      });
+      
+      // User form
+      document.getElementById('userForm').addEventListener('submit', handleUserUpdate);
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      
+      const adminId = document.getElementById('adminId').value.trim().toUpperCase();
+      const password = document.getElementById('adminPassword').value;
+      
+      showLoginLoading(true);
+      hideLoginError();
+      
+      try {
+        const response = await fetch('/api/admin/auth', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ adminId, password })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.authenticated) {
+          // Store admin credentials for API requests
+          localStorage.setItem('adminId', adminId);
+          localStorage.setItem('adminPassword', password);
+          localStorage.setItem('adminExpiresAt', data.expiresAt);
+          adminToken = `${adminId}:${password}`;
+          showDashboard();
+          loadDashboardData();
+        } else {
+          throw new Error(data.message || 'Invalid admin credentials');
+        }
+      } catch (error) {
+        showLoginError(error.message);
+      } finally {
+        showLoginLoading(false);
+      }
+    }
+
+    function handleLogout() {
+      localStorage.removeItem('adminId');
+      localStorage.removeItem('adminPassword');
+      localStorage.removeItem('adminExpiresAt');
+      adminToken = null;
+      showLogin();
+    }
+
+    function hideLoginError() {
+      const errorDiv = document.getElementById('loginError');
+      errorDiv.classList.add('hidden');
+    }
+
+    function handleDevBypass() {
+      // Set development bypass credentials
+      localStorage.setItem('adminId', 'DEV_ADMIN');
+      localStorage.setItem('adminPassword', 'DEV_BYPASS');
+      localStorage.setItem('adminExpiresAt', new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString());
+      adminToken = 'DEV_ADMIN:DEV_BYPASS';
+      showDashboard();
+      loadDashboardData();
+    }
+
+    function showLoginLoading(loading) {
+      const loginBtn = document.getElementById('loginBtn');
+      const loginText = document.getElementById('loginText');
+      const loginSpinner = document.getElementById('loginSpinner');
+      
+      if (loading) {
+        loginBtn.disabled = true;
+        loginText.classList.add('hidden');
+        loginSpinner.classList.remove('hidden');
+      } else {
+        loginBtn.disabled = false;
+        loginText.classList.remove('hidden');
+        loginSpinner.classList.add('hidden');
+      }
+    }
+
+    function showLoginError(message) {
+      const errorDiv = document.getElementById('loginError');
+      errorDiv.textContent = message;
+      errorDiv.classList.remove('hidden');
+      
+      setTimeout(() => {
+        errorDiv.classList.add('hidden');
+      }, 5000);
+    }
+
+    function showLogin() {
+      document.getElementById('loginModal').classList.remove('hidden');
+      document.getElementById('dashboard').classList.add('hidden');
+    }
+
+    function showDashboard() {
+      document.getElementById('loginModal').classList.add('hidden');
+      document.getElementById('dashboard').classList.remove('hidden');
+      
+      // Load admin info
+      const adminUser = JSON.parse(localStorage.getItem('adminUser') || '{}');
+      document.getElementById('adminInfo').textContent = `Logged in as: ${adminUser.name || adminUser.phone}`;
+      
+      // Load initial data
+      loadDashboardData();
+    }
+
+    function showTab(tabName) {
+      // Update tab buttons
+      document.querySelectorAll('.nav-tab').forEach(tab => {
+        if (tab.getAttribute('data-tab') === tabName) {
+          tab.classList.add('active', 'border-green-600', 'text-green-600');
+          tab.classList.remove('border-transparent', 'text-gray-500');
+        } else {
+          tab.classList.remove('active', 'border-green-600', 'text-green-600');
+          tab.classList.add('border-transparent', 'text-gray-500');
+        }
+      });
+      
+      // Show/hide tab content
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.add('hidden');
+      });
+      document.getElementById(`${tabName}-tab`).classList.remove('hidden');
+      
+      // Load tab-specific data
+      switch(tabName) {
+        case 'users':
+          loadUsers();
+          break;
+        case 'agents':
+          loadAgents();
+          break;
+        case 'kyc':
+          loadKycDocuments();
+          break;
+        case 'draws':
+          loadDraws();
+          break;
+        case 'system':
+          loadSystemStatus();
+          break;
+      }
+    }
+
+    // Helper function to get admin headers
+    function getAdminHeaders() {
+      const adminId = localStorage.getItem('adminId');
+      const adminPassword = localStorage.getItem('adminPassword');
+      return {
+        'Content-Type': 'application/json',
+        'x-admin-id': adminId,
+        'x-admin-password': adminPassword
+      };
+    }
+
+    async function loadDashboardData() {
+      try {
+        // Load overview stats
+        const statsResponse = await fetch('/api/admin/stats', {
+          headers: getAdminHeaders()
+        });
+        
+        if (statsResponse.ok) {
+          const stats = await statsResponse.json();
+          document.getElementById('totalUsers').textContent = stats.totalUsers || 0;
+          document.getElementById('activeAgents').textContent = stats.activeAgents || 0;
+          document.getElementById('pendingKyc').textContent = stats.pendingKyc || 0;
+          document.getElementById('activeDraws').textContent = stats.activeDraws || 0;
+        }
+      } catch (error) {
+        console.error('Error loading dashboard data:', error);
+      }
+    }
+
+    async function loadUsers() {
+      try {
+        const response = await fetch('/api/admin/users', {
+          headers: getAdminHeaders()
+        });
+        
+        if (response.ok) {
+          const users = await response.json();
+          renderUsersTable(users);
+        }
+      } catch (error) {
+        console.error('Error loading users:', error);
+      }
+    }
+
+    function renderUsersTable(users) {
+      const tbody = document.getElementById('usersTableBody');
+      const loading = document.getElementById('usersLoading');
+      
+      loading.classList.add('hidden');
+      
+      tbody.innerHTML = users.map(user => `
+        <tr>
+          <td class="px-3 py-4 whitespace-nowrap">
+            <div>
+              <div class="text-sm font-medium text-gray-900">${user.name}</div>
+              <div class="text-sm text-gray-500">${user.phone}</div>
+            </div>
+          </td>
+          <td class="px-3 py-4 whitespace-nowrap">
+            <span class="px-2 py-1 text-xs font-semibold rounded-full ${
+              user.isBanned ? 'bg-red-100 text-red-800' :
+              user.isFrozen ? 'bg-yellow-100 text-yellow-800' :
+              'bg-green-100 text-green-800'
+            }">
+              ${user.isBanned ? 'Banned' : user.isFrozen ? 'Frozen' : 'Active'}
+            </span>
+          </td>
+          <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
+            $${parseFloat(user.balance).toFixed(2)}
+          </td>
+          <td class="px-3 py-4 whitespace-nowrap">
+            <span class="px-2 py-1 text-xs font-semibold rounded-full ${
+              user.kycVerified ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+            }">
+              ${user.kycVerified ? 'Verified' : 'Pending'}
+            </span>
+          </td>
+          <td class="px-3 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+            <button onclick="editUser(${user.id})" class="text-blue-600 hover:text-blue-900">
+              <i data-lucide="edit" class="w-4 h-4 inline"></i>
+            </button>
+            <button onclick="viewUserDetails(${user.id})" class="text-green-600 hover:text-green-900">
+              <i data-lucide="eye" class="w-4 h-4 inline"></i>
+            </button>
+          </td>
+        </tr>
+      `).join('');
+      
+      lucide.createIcons();
+    }
+
+    async function loadAgents() {
+      // Similar implementation for agents
+    }
+
+    async function loadKycDocuments() {
+      try {
+        const response = await fetch('/api/admin/kyc/pending', {
+          headers: getAdminHeaders()
+        });
+        
+        if (response.ok) {
+          const documents = await response.json();
+          renderKycDocuments(documents);
+        }
+      } catch (error) {
+        console.error('Error loading KYC documents:', error);
+      }
+    }
+
+    function renderKycDocuments(documents) {
+      const container = document.getElementById('kycDocuments');
+      const loading = document.getElementById('kycLoading');
+      
+      loading.classList.add('hidden');
+      
+      container.innerHTML = documents.map(doc => `
+        <div class="border border-gray-200 rounded-lg p-4">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0">
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900">${doc.user.name}</h3>
+              <p class="text-sm text-gray-600">${doc.user.phone}</p>
+              <p class="text-xs text-gray-500">Submitted: ${new Date(doc.createdAt).toLocaleDateString()}</p>
+            </div>
+            <div class="flex space-x-2">
+              <button onclick="reviewKyc(${doc.id})" class="btn-primary">
+                <i data-lucide="eye" class="w-4 h-4 inline mr-1"></i>
+                Review
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+      
+      lucide.createIcons();
+    }
+
+    async function editUser(userId) {
+      try {
+        const response = await fetch(`/api/admin/users/${userId}`, {
+          headers: getAdminHeaders()
+        });
+        
+        if (response.ok) {
+          currentUser = await response.json();
+          showUserModal();
+        }
+      } catch (error) {
+        console.error('Error loading user:', error);
+      }
+    }
+
+    function showUserModal() {
+      if (currentUser) {
+        document.getElementById('userName').value = currentUser.name;
+        document.getElementById('userPhone').value = currentUser.phone;
+        document.getElementById('userBalance').value = parseFloat(currentUser.balance);
+        document.getElementById('userPassword').value = '';
+        
+        // Update button states
+        const freezeBtn = document.getElementById('freezeBtn');
+        const banBtn = document.getElementById('banBtn');
+        
+        freezeBtn.innerHTML = currentUser.isFrozen ? 
+          '<i data-lucide="play" class="w-4 h-4 inline mr-2"></i>Unfreeze Account' :
+          '<i data-lucide="pause" class="w-4 h-4 inline mr-2"></i>Freeze Account';
+          
+        banBtn.innerHTML = currentUser.isBanned ? 
+          '<i data-lucide="user-check" class="w-4 h-4 inline mr-2"></i>Unban Account' :
+          '<i data-lucide="ban" class="w-4 h-4 inline mr-2"></i>Ban Account';
+      }
+      
+      document.getElementById('userModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeUserModal() {
+      document.getElementById('userModal').classList.add('hidden');
+      currentUser = null;
+    }
+
+    async function handleUserUpdate(e) {
+      e.preventDefault();
+      
+      if (!currentUser) return;
+      
+      const updateData = {
+        name: document.getElementById('userName').value,
+        phone: document.getElementById('userPhone').value,
+        balance: document.getElementById('userBalance').value,
+      };
+      
+      const password = document.getElementById('userPassword').value;
+      if (password) {
+        updateData.password = password;
+      }
+      
+      try {
+        const response = await fetch(`/api/admin/users/${currentUser.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${adminToken}`
+          },
+          body: JSON.stringify(updateData)
+        });
+        
+        if (response.ok) {
+          closeUserModal();
+          loadUsers(); // Reload users table
+          alert('User updated successfully');
+        } else {
+          throw new Error('Failed to update user');
+        }
+      } catch (error) {
+        alert('Error updating user: ' + error.message);
+      }
+    }
+
+    async function freezeUser() {
+      if (!currentUser) return;
+      
+      try {
+        const action = currentUser.isFrozen ? 'unfreeze' : 'freeze';
+        const response = await fetch(`/api/admin/users/${currentUser.id}/${action}`, {
+          method: 'POST',
+          headers: getAdminHeaders()
+        });
+        
+        if (response.ok) {
+          closeUserModal();
+          loadUsers();
+          alert(`User ${action}d successfully`);
+        }
+      } catch (error) {
+        alert('Error updating user status: ' + error.message);
+      }
+    }
+
+    async function banUser() {
+      if (!currentUser) return;
+      
+      const action = currentUser.isBanned ? 'unban' : 'ban';
+      if (!currentUser.isBanned && !confirm(`Are you sure you want to ban this user?`)) {
+        return;
+      }
+      
+      try {
+        const response = await fetch(`/api/admin/users/${currentUser.id}/${action}`, {
+          method: 'POST',
+          headers: getAdminHeaders()
+        });
+        
+        if (response.ok) {
+          closeUserModal();
+          loadUsers();
+          alert(`User ${action}ned successfully`);
+        }
+      } catch (error) {
+        alert('Error updating user status: ' + error.message);
+      }
+    }
+
+    async function reviewKyc(documentId) {
+      try {
+        const response = await fetch(`/api/admin/kyc/${documentId}`, {
+          headers: getAdminHeaders()
+        });
+        
+        if (response.ok) {
+          currentKycDocument = await response.json();
+          showKycModal();
+        }
+      } catch (error) {
+        console.error('Error loading KYC document:', error);
+      }
+    }
+
+    function showKycModal() {
+      if (currentKycDocument) {
+        const content = document.getElementById('kycModalContent');
+        content.innerHTML = `
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h3 class="text-lg font-semibold mb-4">User Information</h3>
+              <div class="space-y-2">
+                <p><strong>Name:</strong> ${currentKycDocument.user.name}</p>
+                <p><strong>Phone:</strong> ${currentKycDocument.user.phone}</p>
+                <p><strong>Submitted:</strong> ${new Date(currentKycDocument.createdAt).toLocaleDateString()}</p>
+              </div>
+            </div>
+            <div>
+              <h3 class="text-lg font-semibold mb-4">Document</h3>
+              <div class="border border-gray-200 rounded-lg p-4">
+                <img src="${currentKycDocument.documentUrl}" alt="ID Document" class="w-full max-w-md mx-auto rounded-lg">
+              </div>
+            </div>
+          </div>
+        `;
+      }
+      
+      document.getElementById('kycModal').classList.remove('hidden');
+    }
+
+    function closeKycModal() {
+      document.getElementById('kycModal').classList.add('hidden');
+      currentKycDocument = null;
+    }
+
+    async function approveKyc() {
+      if (!currentKycDocument) return;
+      
+      try {
+        const response = await fetch(`/api/admin/kyc/${currentKycDocument.id}/approve`, {
+          method: 'POST',
+          headers: getAdminHeaders()
+        });
+        
+        if (response.ok) {
+          closeKycModal();
+          loadKycDocuments();
+          alert('KYC document approved successfully');
+        }
+      } catch (error) {
+        alert('Error approving KYC: ' + error.message);
+      }
+    }
+
+    async function rejectKyc() {
+      if (!currentKycDocument) return;
+      
+      const reason = prompt('Please provide a reason for rejection:');
+      if (!reason) return;
+      
+      try {
+        const response = await fetch(`/api/admin/kyc/${currentKycDocument.id}/reject`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${adminToken}`
+          },
+          body: JSON.stringify({ reason })
+        });
+        
+        if (response.ok) {
+          closeKycModal();
+          loadKycDocuments();
+          alert('KYC document rejected successfully');
+        }
+      } catch (error) {
+        alert('Error rejecting KYC: ' + error.message);
+      }
+    }
+
+    async function executeManualDraw(type) {
+      const jackpotInput = document.getElementById(`${type}Jackpot`);
+      const jackpot = jackpotInput.value;
+      
+      if (!jackpot || isNaN(jackpot) || parseFloat(jackpot) <= 0) {
+        alert('Please enter a valid jackpot amount');
+        return;
+      }
+      
+      if (!confirm(`Are you sure you want to execute a ${type} draw with jackpot $${jackpot}?`)) {
+        return;
+      }
+      
+      try {
+        const response = await fetch('/api/admin/draws/execute', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${adminToken}`
+          },
+          body: JSON.stringify({ type, jackpot: parseFloat(jackpot) })
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          alert(`${type} draw executed successfully! Numbers: ${result.winningNumbers.join(', ')}`);
+          jackpotInput.value = '';
+          loadDraws();
+        } else {
+          throw new Error('Failed to execute draw');
+        }
+      } catch (error) {
+        alert('Error executing draw: ' + error.message);
+      }
+    }
+
+    async function loadDraws() {
+      // Implementation for loading draws
+    }
+
+    async function loadSystemStatus() {
+      // Implementation for loading system status
+    }
+
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('currentTime').textContent = now.toLocaleString();
+    }
+
+    // Additional utility functions
+    function searchUsers() {
+      const searchTerm = document.getElementById('userSearch').value;
+      // Implement user search
+    }
+
+    function checkVRFStatus() {
+      // Implement VRF status check
+    }
+
+    function viewBlockchainLogs() {
+      // Implement blockchain logs viewing
+    }
+  </script>
+</body>
+</html>
